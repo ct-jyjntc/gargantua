@@ -1,0 +1,177 @@
+/* GARGANTUA - quiet console aesthetic: monochrome, high density, thin rules */
+
+:root {
+  --fg: #d5dae2;
+  --fg-dim: #8a93a0;
+  --fg-faint: #565f6b;
+  --bg: #020204;
+  --line: rgba(213, 218, 226, 0.14);
+  --accent: #e8b25c;
+  --panel-bg: rgba(8, 9, 12, 0.82);
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  overflow: hidden;
+}
+
+#app { position: fixed; inset: 0; }
+#app canvas.gl { position: absolute; inset: 0; display: block; touch-action: none; cursor: grab; }
+#app canvas.gl:active { cursor: grabbing; }
+
+/* ------------------------------------------------------------- HUD */
+.hud {
+  position: absolute; top: 18px; left: 20px;
+  pointer-events: none; user-select: none;
+  font-size: 11px; letter-spacing: 0.12em;
+}
+.hud-title {
+  font-size: 17px; font-weight: 700; letter-spacing: 0.42em;
+  color: var(--fg);
+}
+.hud-sub {
+  margin-top: 2px; font-size: 9px; letter-spacing: 0.34em;
+  color: var(--fg-dim);
+}
+.hud-rows { margin-top: 14px; line-height: 1.9; }
+.hud-row span { margin-right: 10px; }
+.hud-row.dim { color: var(--fg-dim); font-size: 10px; }
+#hud-fps { color: var(--accent); }
+.hidden { display: none !important; }
+
+/* ---------------------------------------------------------- toolbar */
+#toolbar {
+  position: absolute; top: 18px; right: 20px;
+  display: flex; gap: 6px;
+}
+.tb-btn {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+  color: var(--fg-dim); background: rgba(10, 11, 14, 0.6);
+  border: 1px solid var(--line);
+  padding: 7px 10px; cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: color .15s, border-color .15s;
+}
+.tb-btn:hover { color: var(--fg); border-color: rgba(213,218,226,.4); }
+.tb-btn.active { color: var(--accent); border-color: rgba(232,178,92,.5); }
+
+/* ------------------------------------------------------------ panel */
+.panel {
+  position: absolute; top: 64px; right: 20px; bottom: 64px;
+  width: 308px;
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+  padding: 14px 14px 18px;
+  overflow-y: auto;
+  transform: translateX(24px); opacity: 0; pointer-events: none;
+  transition: transform .22s ease, opacity .22s ease;
+  scrollbar-width: thin; scrollbar-color: var(--fg-faint) transparent;
+}
+.panel.open { transform: none; opacity: 1; pointer-events: auto; }
+.panel-group { margin-bottom: 16px; }
+.panel-group-title {
+  font-size: 9px; letter-spacing: 0.3em; color: var(--fg-faint);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 5px; margin-bottom: 8px;
+}
+.prow {
+  display: grid; grid-template-columns: 118px 1fr 42px;
+  align-items: center; gap: 8px;
+  font-size: 10px; color: var(--fg-dim);
+  padding: 3.5px 0; cursor: ew-resize;
+}
+.pval { text-align: right; color: var(--fg); font-size: 10px; }
+.plabel { letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  height: 2px; background: var(--line); outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 9px; height: 9px; background: var(--fg);
+  border-radius: 0; cursor: ew-resize;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 9px; height: 9px; background: var(--fg); border: none; border-radius: 0;
+}
+input[type="range"]:hover::-webkit-slider-thumb { background: var(--accent); }
+
+.preset-btn {
+  display: block; width: 100%;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
+  color: var(--fg-dim); background: transparent;
+  border: 1px solid var(--line);
+  padding: 8px 10px; margin-bottom: 6px; cursor: pointer; text-align: left;
+  transition: color .15s, border-color .15s;
+}
+.preset-btn:hover { color: var(--accent); border-color: rgba(232,178,92,.5); }
+
+/* ------------------------------------------------------------ hints */
+.hints {
+  position: absolute; bottom: 16px; right: 20px;
+  font-size: 10px; letter-spacing: 0.1em; color: var(--fg-faint);
+  pointer-events: none; user-select: none;
+}
+.hints b { color: var(--fg-dim); font-weight: 600; }
+
+/* ------------------------------------------------------------- toast */
+.toast {
+  position: absolute; bottom: 52px; left: 50%; transform: translate(-50%, 8px);
+  font-size: 11px; letter-spacing: 0.3em; color: var(--accent);
+  background: rgba(8, 9, 12, 0.75); border: 1px solid rgba(232,178,92,.35);
+  padding: 9px 18px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s, transform .25s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* -------------------------------------------------------------- help */
+.help {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(2, 2, 4, 0.72);
+  backdrop-filter: blur(4px); z-index: 30;
+}
+.help-card {
+  background: var(--panel-bg); border: 1px solid var(--line);
+  padding: 26px 30px; max-width: 560px; width: min(92vw, 560px);
+  max-height: 82vh; overflow-y: auto;
+}
+.help-title { font-size: 11px; letter-spacing: 0.4em; color: var(--fg-faint); margin-bottom: 14px; }
+.help-card table { border-collapse: collapse; font-size: 11px; width: 100%; }
+.help-card td { padding: 5px 8px 5px 0; color: var(--fg-dim); line-height: 1.5; vertical-align: top; }
+.help-card td:first-child { color: var(--accent); white-space: nowrap; letter-spacing: 0.08em; }
+
+/* ----------------------------------------------------------- overlay */
+.overlay {
+  position: absolute; inset: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #0a0b10 0%, #020204 75%);
+}
+.overlay-card { text-align: center; padding: 30px; }
+.ov-title { font-size: 15px; letter-spacing: 0.45em; color: var(--fg); }
+.ov-sub { margin-top: 12px; font-size: 11px; letter-spacing: 0.12em; color: var(--fg-dim); max-width: 46ch; }
+.ov-sub.dim { color: var(--fg-faint); }
+
+/* ------------------------------------------------------------ mobile */
+@media (max-width: 720px) {
+  .hud { top: 12px; left: 14px; font-size: 10px; }
+  .hud-rows { display: none; }
+  .hud-title { font-size: 14px; }
+  #toolbar { top: auto; bottom: 14px; right: 14px; }
+  .tb-btn { padding: 9px 12px; }
+  .hints { display: none; }
+  .panel {
+    top: auto; left: 12px; right: 12px; bottom: 64px; width: auto;
+    max-height: 46vh;
+  }
+  .prow { grid-template-columns: 104px 1fr 40px; }
+}
